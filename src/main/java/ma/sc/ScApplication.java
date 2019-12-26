@@ -10,6 +10,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.transaction.Transactional;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.Random;
@@ -31,25 +34,33 @@ public class ScApplication  implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 
-		int max = 6;
-		int min = 1;
-		int range = max - min + 1;
-		int rand = (int)(Math.random() * range) + min;
+		while(true) {
 
-		InputStream inStream = new ClassPathResource("queries.xml").getInputStream();
-		Properties props = new Properties();
-		props.loadFromXML(inStream);
-		String randomRequete = props.getProperty(String.valueOf(rand));
+			int max = Integer.valueOf(args[0]);
+			int min = 1;
+			int range = max - min + 1;
+			int rand = (int)(Math.random() * range) + min;
 
-		try{
-			LOGGER.info("Exécution du requête :"+randomRequete);
-			jdbcTemplate.execute(randomRequete);
-			LOGGER.info("Exécution terminé avec succès");
-		}
-		catch (Exception e){
-			LOGGER.info("Exécution du requête :"+randomRequete+"a échoué");
-			LOGGER.info("Message d'erreur  :"+e.getMessage());
-			e.printStackTrace();
+			File initialFile = new File(args[1]);
+
+			InputStream inStream = new FileInputStream(initialFile);
+			Properties props = new Properties();
+			props.loadFromXML(inStream);
+			String randomRequete = props.getProperty(String.valueOf(rand));
+
+			try{
+				LOGGER.info("Exécution du requête :"+randomRequete);
+				jdbcTemplate.execute(randomRequete);
+				LOGGER.info("Exécution terminé avec succès");
+			}
+			catch (Exception e){
+				LOGGER.info("Exécution du requête :"+randomRequete+"a échoué");
+				LOGGER.info("Message d'erreur  :"+e.getMessage());
+				e.printStackTrace();
+			}
+			finally {
+				inStream.close();
+			}
 		}
 
 	}
